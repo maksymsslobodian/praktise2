@@ -1,0 +1,178 @@
+import random
+
+def generate_matrix(m, n, min_val=0, max_val=10):
+    """Генерує двовимірний масив (матрицю) розміром m x n."""
+    return [[random.randint(min_val, max_val) for _ in range(n)] for _ in range(m)]
+
+
+def print_matrix(matrix, title="Матриця"):
+    """Виводить матрицю з підписами стовпців та рядків."""
+    print(f"\n--- {title} ---")
+    if not matrix or not matrix[0]:
+        print("Порожня матриця")
+        return
+    
+    m = len(matrix)
+    n = len(matrix[0])
+    
+    headers = [""] + [f"стовпець {j+1}" for j in range(n)]
+    print("\t".join(headers))
+    
+    for i in range(m):
+        row_str = [f"рядок {i+1}"]
+        for val in matrix[i]:
+            if isinstance(val, float):
+                row_str.append(f"{val:8.2f}")
+            else:
+                row_str.append(f"{val:8}")
+        print("\t".join(row_str))
+
+
+# 1.
+def task1_subtract_mean(matrix):
+    result = []
+    for row in matrix:
+        mean = sum(row) / len(row)
+        result.append([round(x - mean, 2) for x in row])
+    return result
+
+
+# 2.
+def task2_cyclic_shift(matrix, k):
+    m, n = len(matrix), len(matrix[0])
+    k_up = k % m
+    k_right = k % n
+    
+    shifted_up = matrix[k_up:] + matrix[:k_up]
+    shifted_final = []
+    for row in shifted_up:
+        new_row = row[-k_right:] + row[:-k_right]
+        shifted_final.append(new_row)
+        
+    return shifted_final
+
+
+# 3. 
+def task3_remove_max(matrix):
+    max_val = max(max(row) for row in matrix)
+    m, n = len(matrix), len(matrix[0])
+    
+    bad_rows, bad_cols = set(), set()
+    for i in range(m):
+        for j in range(n):
+            if matrix[i][j] == max_val:
+                bad_rows.add(i)
+                bad_cols.add(j)
+                
+    new_matrix = [
+        [matrix[i][j] for j in range(n) if j not in bad_cols]
+        for i in range(m) if i not in bad_rows
+    ]
+    return new_matrix, max_val
+
+
+# 4. 
+def task4_rotate_90_inplace(matrix):
+    n = len(matrix)
+    for i in range(n):
+        for j in range(i + 1, n):
+            matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]
+            
+    for i in range(n):
+        matrix[i].reverse()
+
+
+# Додаткове завдання:
+DAYS = ["Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця"]
+
+def analyze_schedule(schedule, group_idx=0):
+    print(f"\nАналіз розкладу для групи {group_idx + 1}:")
+    
+    
+    max_pairs = -1
+    busiest_day = ""
+    for day_i, day_name in enumerate(DAYS):
+        count = sum(1 for pair in schedule[group_idx][day_i] if pair != "Вільне вікно")
+        if count > max_pairs:
+            max_pairs = count
+            busiest_day = day_name
+    print(f"1. Найбільш завантажений день: {busiest_day} ({max_pairs} пар(и))")
+
+    
+    window_days = []
+    for day_i, day_name in enumerate(DAYS):
+        day_lessons = schedule[group_idx][day_i]
+        active_indices = [i for i, lesson in enumerate(day_lessons) if lesson != "Вільне вікно"]
+        if len(active_indices) > 1:
+            for i in range(len(active_indices) - 1):
+                if active_indices[i+1] - active_indices[i] > 1:
+                    window_days.append(day_name)
+                    break
+    print(f"2. Дні з незручним розкладом: {', '.join(window_days) if window_days else 'Немає'}")
+
+    print("3. Потокові заняття:")
+    found_streams = False
+    for day_i, day_name in enumerate(DAYS):
+        for pair_i in range(4):
+            subjects_at_time = {}
+            for g_i in range(3):
+                subj = schedule[g_i][day_i][pair_i]
+                if subj != "Вільне вікно":
+                    subjects_at_time.setdefault(subj, []).append(g_i + 1)
+            
+            for subj, groups in subjects_at_time.items():
+                if len(groups) > 1:
+                    found_streams = True
+                    print(f"   • {day_name}, {pair_i + 1}-я пара: '{subj}' у груп {groups}")
+    if not found_streams:
+        print("   • Потокових занять не знайдено.")
+
+
+if __name__ == "__main__":
+    m, n = 4, 4
+    matrix = generate_matrix(m, n, min_val=1, max_val=9)
+    print_matrix(matrix, "Початкова матриця")
+
+    m1 = task1_subtract_mean(matrix)
+    print_matrix(m1, "1. Після віднімання середнього арифметичного")
+
+    k = 1
+    m2 = task2_cyclic_shift(matrix, k)
+    print_matrix(m2, f"2. Після циклічного зсуву на k={k}")
+
+    m3, max_val = task3_remove_max(matrix)
+    print(f"\nМаксимальний елемент: {max_val}")
+    print_matrix(m3, "3. Після видалення рядків та стовпців з максимумом")
+
+    m4 = [row[:] for row in matrix]
+    task4_rotate_90_inplace(m4)
+    print_matrix(m4, "4. Обертання на 90° in-place")
+
+    schedule_3d = [
+        # Група 1
+        [
+            ["Вища математика", "Вища математика", "Вільне вікно", "Програмування"],
+            ["Програмування", "Вільне вікно", "Історія", "Вільне вікно"],
+            ["Вільне вікно", "Вільне вікно", "Вільне вікно", "Вільне вікно"],
+            ["Вища математика", "Вища математика", "Вища математика", "Вільне вікно"],
+            ["Англійська", "Програмування", "Вільне вікно", "Вільне вікно"]
+        ],
+        # Група 2
+        [
+            ["Вища математика", "Вільне вікно", "Програмування", "Вільне вікно"],
+            ["Вища математика", "Вища математика", "Вільне вікно", "Вільне вікно"],
+            ["Програмування", "Програмування", "Вища математика", "Вільне вікно"],
+            ["Вища математика", "Вища математика", "Вільне вікно", "Вільне вікно"],
+            ["Вища математика", "Вільне вікно", "Вільне вікно", "Вільне вікно"]
+        ],
+        # Група 3
+        [
+            ["Вища математика", "Вища математика", "Вільне вікно", "Вільне вікно"],
+            ["Вільне вікно", "Програмування", "Вища математика", "Вільне вікно"],
+            ["Вища математика", "Вища математика", "Вільне вікно", "Вільне вікно"],
+            ["Програмування", "Вища математика", "Вища математика", "Вільне вікно"],
+            ["Вільне вікно", "Вільне вікно", "Вільне вікно", "Вільне вікно"]
+        ]
+    ]
+
+    analyze_schedule(schedule_3d, group_idx=0)
