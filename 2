@@ -28,7 +28,7 @@ def print_matrix(matrix, title="Матриця"):
         print("\t".join(row_str))
 
 
-# 1. Відняти від елементів кожного рядка середнє арифметичне
+# 1
 def task1_subtract_mean(matrix):
     result = []
     for row in matrix:
@@ -37,16 +37,16 @@ def task1_subtract_mean(matrix):
     return result
 
 
-# 2. Циклічний зсув на k позицій вправо та na k догори
+# 2
 def task2_cyclic_shift(matrix, k):
     m, n = len(matrix), len(matrix[0])
     k_up = k % m
     k_right = k % n
     
-    # Зсув догори: зрізаємо перші k_up рядків і переносимо їх в кінець
+  
     shifted_up = matrix[k_up:] + matrix[:k_up]
     
-    # Зсув вправо: для кожного рядка переносимо останні k_right елементів на початок
+   
     shifted_final = []
     for row in shifted_up:
         new_row = row[-k_right:] + row[:-k_right]
@@ -55,7 +55,7 @@ def task2_cyclic_shift(matrix, k):
     return shifted_final
 
 
-# 3. Видалення рядків та стовпців з максимальними елементами
+# 3
 def task3_remove_max(matrix):
     max_val = max(max(row) for row in matrix)
     m, n = len(matrix), len(matrix[0])
@@ -74,7 +74,7 @@ def task3_remove_max(matrix):
     return new_matrix, max_val
 
 
-# 4. Обертання на 90 градусів за годинниковою стрілкою in-place (для квадратних матриць)
+# 4
 def task4_rotate_90_inplace(matrix):
     m, n = len(matrix), len(matrix[0])
     if m != n:
