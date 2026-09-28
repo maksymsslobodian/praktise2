@@ -28,7 +28,7 @@ def print_matrix(matrix, title="Матриця"):
         print("\t".join(row_str))
 
 
-# 1.
+# 1. Відняти від елементів кожного рядка середнє арифметичне
 def task1_subtract_mean(matrix):
     result = []
     for row in matrix:
@@ -37,13 +37,16 @@ def task1_subtract_mean(matrix):
     return result
 
 
-# 2.
+# 2. Циклічний зсув на k позицій вправо та na k догори
 def task2_cyclic_shift(matrix, k):
     m, n = len(matrix), len(matrix[0])
     k_up = k % m
     k_right = k % n
     
+    # Зсув догори: зрізаємо перші k_up рядків і переносимо їх в кінець
     shifted_up = matrix[k_up:] + matrix[:k_up]
+    
+    # Зсув вправо: для кожного рядка переносимо останні k_right елементів на початок
     shifted_final = []
     for row in shifted_up:
         new_row = row[-k_right:] + row[:-k_right]
@@ -52,7 +55,7 @@ def task2_cyclic_shift(matrix, k):
     return shifted_final
 
 
-# 3. 
+# 3. Видалення рядків та стовпців з максимальними елементами
 def task3_remove_max(matrix):
     max_val = max(max(row) for row in matrix)
     m, n = len(matrix), len(matrix[0])
@@ -71,51 +74,59 @@ def task3_remove_max(matrix):
     return new_matrix, max_val
 
 
-# 4. 
+# 4. Обертання на 90 градусів за годинниковою стрілкою in-place (для квадратних матриць)
 def task4_rotate_90_inplace(matrix):
-    n = len(matrix)
+    m, n = len(matrix), len(matrix[0])
+    if m != n:
+        print("\n[Увага] In-place обертання можливе лише для квадратних матриць!")
+        return
+    
+    # 1. Транспонування
     for i in range(n):
         for j in range(i + 1, n):
             matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]
             
+    # 2. Реверс кожного рядка
     for i in range(n):
         matrix[i].reverse()
 
 
-# Додаткове завдання:
+# Додаткове завдання: Розклад студентів
 DAYS = ["Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця"]
 
 def analyze_schedule(schedule, group_idx=0):
     print(f"\nАналіз розкладу для групи {group_idx + 1}:")
     
-    
-    max_pairs = -1
-    busiest_day = ""
-    for day_i, day_name in enumerate(DAYS):
-        count = sum(1 for pair in schedule[group_idx][day_i] if pair != "Вільне вікно")
-        if count > max_pairs:
-            max_pairs = count
-            busiest_day = day_name
-    print(f"1. Найбільш завантажений день: {busiest_day} ({max_pairs} пар(и))")
+    # 1. День із найбільшим навантаженням
+    day_counts = [
+        sum(1 for pair in schedule[group_idx][day_i] if pair != "Вільне вікно")
+        for day_i in range(len(DAYS))
+    ]
+    max_pairs = max(day_counts)
+    busiest_days = [DAYS[i] for i, count in enumerate(day_counts) if count == max_pairs]
+    print(f"1. Найбільш завантадений(і) день(дні): {', '.join(busiest_days)} ({max_pairs} пар(и))")
 
-    
+    # 2. Дні з «вікнами» в розкладі
     window_days = []
     for day_i, day_name in enumerate(DAYS):
         day_lessons = schedule[group_idx][day_i]
         active_indices = [i for i, lesson in enumerate(day_lessons) if lesson != "Вільне вікно"]
+        
+        # Перевіряємо, чи є розрив між першою та останньою парою
         if len(active_indices) > 1:
             for i in range(len(active_indices) - 1):
                 if active_indices[i+1] - active_indices[i] > 1:
                     window_days.append(day_name)
                     break
-    print(f"2. Дні з незручним розкладом: {', '.join(window_days) if window_days else 'Немає'}")
+    print(f"2. Дні з незручним розкладом (наявні «вікна»): {', '.join(window_days) if window_days else 'Немає'}")
 
+    # 3. Потокові заняття (однаковий предмет у кількох груп одночасно)
     print("3. Потокові заняття:")
     found_streams = False
     for day_i, day_name in enumerate(DAYS):
         for pair_i in range(4):
             subjects_at_time = {}
-            for g_i in range(3):
+            for g_i in range(len(schedule)):
                 subj = schedule[g_i][day_i][pair_i]
                 if subj != "Вільне вікно":
                     subjects_at_time.setdefault(subj, []).append(g_i + 1)
@@ -123,9 +134,9 @@ def analyze_schedule(schedule, group_idx=0):
             for subj, groups in subjects_at_time.items():
                 if len(groups) > 1:
                     found_streams = True
-                    print(f"   • {day_name}, {pair_i + 1}-я пара: '{subj}' у груп {groups}")
+                    print(f"    • {day_name}, {pair_i + 1}-я пара: '{subj}' у груп {groups}")
     if not found_streams:
-        print("   • Потокових занять не знайдено.")
+        print("    • Потокових занять не знайдено.")
 
 
 if __name__ == "__main__":
